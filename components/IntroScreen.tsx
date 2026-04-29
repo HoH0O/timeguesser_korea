@@ -1,10 +1,13 @@
 "use client";
 
-import type { Difficulty } from "@/lib/types";
+import { useState } from "react";
+import type { Difficulty, GameMode } from "@/lib/types";
+
+type BestScores = Record<GameMode, Record<Difficulty, number>>;
 
 interface IntroScreenProps {
-  onStart: (difficulty: Difficulty) => void;
-  bestScores: Record<Difficulty, number>;
+  onStart: (mode: GameMode, difficulty: Difficulty) => void;
+  bestScores: BestScores;
 }
 
 const DIFFICULTY_META: {
@@ -37,7 +40,14 @@ const DIFFICULTY_META: {
   },
 ];
 
+const MODE_META: { key: GameMode; title: string; tagline: string }[] = [
+  { key: "classic", title: "일반 모드", tagline: "시간 제한 없음" },
+  { key: "survival", title: "서바이벌 모드", tagline: "3초 안에 정답!" },
+];
+
 export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
+  const [mode, setMode] = useState<GameMode>("classic");
+
   return (
     <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-12 text-center">
       <div className="animate-fade-in-up space-y-3">
@@ -56,16 +66,59 @@ export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
         </p>
       </div>
 
+      {/* mode toggle */}
       <div
-        className="mt-12 grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-6"
-        style={{ animationDelay: "120ms" }}
+        className="mt-10 inline-flex animate-fade-in-up rounded-full border border-white/10 bg-ink-900/80 p-1 backdrop-blur"
+        style={{ animationDelay: "100ms" }}
+        role="tablist"
+        aria-label="게임 모드"
       >
+        {MODE_META.map((m) => {
+          const active = mode === m.key;
+          return (
+            <button
+              key={m.key}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setMode(m.key)}
+              className={[
+                "relative rounded-full px-5 py-2 text-sm md:text-base font-semibold transition-colors",
+                active
+                  ? "bg-white text-ink-950 shadow-lg"
+                  : "text-white/60 hover:text-white",
+              ].join(" ")}
+            >
+              {m.key === "survival" && (
+                <span className="mr-1.5" aria-hidden>
+                  ⏱
+                </span>
+              )}
+              {m.title}
+              <span className="ml-2 hidden text-xs font-normal opacity-60 md:inline">
+                · {m.tagline}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <p
+        className="mt-3 animate-fade-in-up text-xs text-white/40"
+        style={{ animationDelay: "150ms" }}
+      >
+        {mode === "survival"
+          ? "각 문제마다 3초의 제한 시간이 주어져요. 시간 초과 시 즉시 게임 오버!"
+          : "원하는 만큼 천천히 생각해서 답할 수 있어요."}
+      </p>
+
+      {/* difficulty cards */}
+      <div className="mt-8 grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
         {DIFFICULTY_META.map((d, i) => (
           <button
             key={d.key}
-            onClick={() => onStart(d.key)}
+            onClick={() => onStart(mode, d.key)}
             className="group relative animate-fade-in-up overflow-hidden rounded-2xl border border-white/10 bg-ink-900 p-6 text-left transition-all hover:-translate-y-1 hover:border-white/30 hover:bg-ink-800"
-            style={{ animationDelay: `${200 + i * 100}ms` }}
+            style={{ animationDelay: `${250 + i * 100}ms` }}
           >
             <div
               className={`absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br ${d.accent} opacity-30 blur-2xl transition-opacity group-hover:opacity-60`}
@@ -80,9 +133,14 @@ export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
               </div>
               <p className="text-sm text-white/50">{d.hint}</p>
               <div className="flex items-center justify-between pt-4 text-xs">
-                <span className="text-white/40">최고 연승</span>
+                <span className="text-white/40">
+                  최고 연승{" "}
+                  <span className="text-white/30">
+                    ({mode === "survival" ? "서바이벌" : "일반"})
+                  </span>
+                </span>
                 <span className="font-mono text-lg font-bold text-white">
-                  {bestScores[d.key]}
+                  {bestScores[mode][d.key]}
                 </span>
               </div>
             </div>
@@ -91,7 +149,7 @@ export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
       </div>
 
       <footer className="mt-16 text-xs text-white/30">
-        데이터 출처: 나무위키 · 108개 한국사 사건 수록
+        데이터 출처: 나무위키 · 490개 한국사·문화·스포츠 사건 수록
       </footer>
     </main>
   );

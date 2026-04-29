@@ -1,11 +1,12 @@
 "use client";
 
-import type { Difficulty } from "@/lib/types";
+import type { Difficulty, GameMode } from "@/lib/types";
 
 interface GameOverScreenProps {
   finalStreak: number;
   bestStreak: number;
   isNewBest: boolean;
+  mode: GameMode;
   difficulty: Difficulty;
   onRetry: () => void;
   onChangeDifficulty: () => void;
@@ -23,18 +24,20 @@ export function GameOverScreen({
   finalStreak,
   bestStreak,
   isNewBest,
+  mode,
   difficulty,
   onRetry,
   onChangeDifficulty,
 }: GameOverScreenProps) {
   const tier = TIER(finalStreak);
+  const modeLabel = mode === "survival" ? "Survival ⏱" : "Classic";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 text-center">
       <div className="w-full animate-fade-in-up space-y-8 rounded-3xl border border-white/10 bg-ink-900/70 p-8 backdrop-blur md:p-12">
         <div className="space-y-2">
           <span className="inline-block text-sm uppercase tracking-[0.3em] text-white/40">
-            Game Over · {difficulty}
+            Game Over · {modeLabel} · {difficulty}
           </span>
           <div className="text-6xl">{tier.emoji}</div>
           <h2 className="text-3xl md:text-4xl font-bold text-white">
@@ -69,7 +72,7 @@ export function GameOverScreen({
             onClick={onChangeDifficulty}
             className="flex-1 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-base font-medium text-white/80 transition-colors hover:bg-white/10"
           >
-            난이도 변경
+            모드 / 난이도 변경
           </button>
         </div>
       </div>

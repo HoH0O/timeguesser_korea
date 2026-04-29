@@ -20,6 +20,11 @@ export interface GameEvent {
 
 export type Difficulty = "easy" | "normal" | "hard";
 
+export type GameMode = "classic" | "survival";
+
+/** 서바이벌 모드에서 한 문제당 허용 시간 (밀리초) */
+export const SURVIVAL_TIME_MS = 3000;
+
 export interface QuestionPair {
   /** 좌측(또는 상단)에 표시될 사건 */
   eventA: GameEvent;

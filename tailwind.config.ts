@@ -41,12 +41,17 @@ const config: Config = {
           "0%": { transform: "translateY(80%)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
+        "timer-shrink": {
+          "0%": { transform: "scaleX(1)" },
+          "100%": { transform: "scaleX(0)" },
+        },
       },
       animation: {
         shake: "shake 0.5s cubic-bezier(.36,.07,.19,.97) both",
         "correct-pulse": "correct-pulse 0.9s ease-out 1",
         "fade-in-up": "fade-in-up 0.5s ease-out both",
         "count-up": "count-up 0.4s cubic-bezier(.4,1.6,.6,1) both",
+        "timer-shrink": "timer-shrink 3s linear forwards",
       },
     },
   },
