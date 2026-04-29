@@ -101,9 +101,9 @@ export function PlayScreen({
 
   function revealStateFor(id: number): "correct" | "wrong" | null {
     if (phase !== "revealing") return null;
-    if (id === correctId) return "correct";
-    if (pickedId !== null && id === pickedId) return "wrong";
-    return null;
+    // 두 카드 모두 reveal: 정답 카드는 correct, 나머지는 모두 wrong
+    // (사용자가 picked 했든 안 했든, 시간 초과든 무관하게 양쪽 날짜를 노출)
+    return id === correctId ? "correct" : "wrong";
   }
 
   return (

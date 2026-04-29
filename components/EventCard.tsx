@@ -39,6 +39,8 @@ export function EventCard({
       ? "ring-4 ring-emerald-400/80"
       : reveal === "wrong" && picked
       ? "ring-4 ring-rose-500 animate-shake opacity-80"
+      : reveal === "wrong" && !picked
+      ? "ring-1 ring-white/10 opacity-60"
       : "hover:ring-2 hover:ring-white/40";
 
   const showYear = reveal !== null && reveal !== undefined;
