@@ -35,10 +35,10 @@ export function EventCard({
   const stateClass =
     reveal === "correct" && picked
       ? "ring-4 ring-emerald-400 animate-correct-pulse"
-      : reveal === "wrong" && picked
-      ? "ring-4 ring-rose-500 animate-shake"
       : reveal === "correct" && !picked
-      ? "ring-2 ring-rose-500/60"
+      ? "ring-4 ring-emerald-400/80"
+      : reveal === "wrong" && picked
+      ? "ring-4 ring-rose-500 animate-shake opacity-80"
       : "hover:ring-2 hover:ring-white/40";
 
   const showYear = reveal !== null && reveal !== undefined;
@@ -91,8 +91,8 @@ export function EventCard({
         </h2>
       </div>
 
-      {/* date / description */}
-      <div className="space-y-2 text-center">
+      {/* date placeholder / reveal */}
+      <div className="text-center">
         {showYear ? (
           <div className="font-mono text-3xl md:text-5xl font-bold text-white animate-count-up">
             {event.date.slice(0, 4)}
@@ -104,11 +104,6 @@ export function EventCard({
           <div className="font-mono text-xl md:text-2xl text-white/30 select-none">
             ????
           </div>
-        )}
-        {event.description && (
-          <p className="text-xs md:text-sm text-white/40 line-clamp-2">
-            {event.description}
-          </p>
         )}
       </div>
     </button>

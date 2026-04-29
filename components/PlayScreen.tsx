@@ -13,7 +13,8 @@ interface PlayScreenProps {
 
 type Phase = "asking" | "revealing";
 
-const REVEAL_MS = 1600;
+/** 정답일 때 자동으로 다음 문제로 넘어가는 시간 */
+const REVEAL_CORRECT_MS = 1600;
 
 export function PlayScreen({ difficulty, onGameOver, onQuit }: PlayScreenProps) {
   const generator = useMemo(() => createQuestionGenerator(difficulty), [difficulty]);
@@ -25,24 +26,21 @@ export function PlayScreen({ difficulty, onGameOver, onQuit }: PlayScreenProps) 
 
   useEffect(() => {
     if (phase !== "revealing" || pickedId === null || !question) return;
+    // 오답일 때는 자동 전환하지 않고, 사용자가 "결과 보기" 버튼을 눌러야 진행
+    if (!isCorrectAnswer(question, pickedId)) return;
 
-    const correct = isCorrectAnswer(question, pickedId);
     const timer = setTimeout(() => {
-      if (correct) {
-        const next = generator.next();
-        if (!next) {
-          // 데이터 풀 소진 — 사실상 클리어
-          onGameOver(streak + 1);
-          return;
-        }
-        setStreak((s) => s + 1);
-        setQuestion(next);
-        setPickedId(null);
-        setPhase("asking");
-      } else {
-        onGameOver(streak);
+      const next = generator.next();
+      if (!next) {
+        // 데이터 풀 소진 — 사실상 클리어
+        onGameOver(streak + 1);
+        return;
       }
-    }, REVEAL_MS);
+      setStreak((s) => s + 1);
+      setQuestion(next);
+      setPickedId(null);
+      setPhase("asking");
+    }, REVEAL_CORRECT_MS);
 
     return () => clearTimeout(timer);
   }, [phase, pickedId, question, streak, generator, onGameOver]);
@@ -63,6 +61,8 @@ export function PlayScreen({ difficulty, onGameOver, onQuit }: PlayScreenProps) 
 
   const correctId = question.earlierEventId;
   const wrongPicked = pickedId !== null && pickedId !== correctId;
+  const correctEvent =
+    question.eventA.id === correctId ? question.eventA : question.eventB;
 
   function revealStateFor(id: number): "correct" | "wrong" | null {
     if (phase !== "revealing") return null;
@@ -125,20 +125,54 @@ export function PlayScreen({ difficulty, onGameOver, onQuit }: PlayScreenProps) 
           onClick={() => handlePick(question.eventB.id)}
         />
 
-        {/* center vs badge */}
+        {/* center badge: VS / ✓ / ✕ */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-ink-950 ring-2 ring-white/15 backdrop-blur md:h-16 md:w-16">
-            <span className="font-display text-sm md:text-base font-bold text-white/70">
-              VS
+          <div
+            className={[
+              "flex h-14 w-14 items-center justify-center rounded-full backdrop-blur md:h-16 md:w-16 transition-colors",
+              phase === "asking"
+                ? "bg-ink-950 ring-2 ring-white/15"
+                : wrongPicked
+                ? "bg-rose-500/90 ring-2 ring-rose-300"
+                : "bg-emerald-500/90 ring-2 ring-emerald-300",
+            ].join(" ")}
+          >
+            <span className="font-display text-base md:text-xl font-bold text-white">
+              {phase === "asking" ? "VS" : wrongPicked ? "✕" : "✓"}
             </span>
           </div>
         </div>
       </div>
 
-      <footer className="mt-4 text-center text-xs text-white/30 md:mt-6">
-        {phase === "asking"
-          ? "사건을 클릭/탭하여 답변"
-          : `연도 차이 ${question.yearDiff}년`}
+      <footer className="mt-4 md:mt-6">
+        {phase === "asking" ? (
+          <p className="text-center text-xs text-white/30">
+            사건을 클릭/탭하여 답변
+          </p>
+        ) : wrongPicked ? (
+          <div className="flex flex-col items-center gap-3 animate-fade-in-up">
+            <p className="text-balance text-center text-sm md:text-base text-white/70">
+              정답은{" "}
+              <span className="font-bold text-emerald-400">
+                {correctEvent.title}
+              </span>
+              <span className="ml-1.5 font-mono text-xs text-white/50 md:text-sm">
+                ({correctEvent.date})
+              </span>
+              이 먼저였어요.
+            </p>
+            <button
+              onClick={() => onGameOver(streak)}
+              className="rounded-full bg-white px-7 py-3 text-sm md:text-base font-bold text-ink-950 shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              결과 보기 →
+            </button>
+          </div>
+        ) : (
+          <p className="text-center text-xs text-white/30">
+            연도 차이 {question.yearDiff}년 · 다음 문제로 넘어가는 중...
+          </p>
+        )}
       </footer>
     </main>
   );
