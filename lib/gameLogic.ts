@@ -1,5 +1,6 @@
 import eventsData from "../data/events.json";
 import type {
+  Category,
   Difficulty,
   DifficultyRange,
   GameEvent,
@@ -114,16 +115,27 @@ export function generateQuestion(
   return null;
 }
 
+interface GeneratorOptions {
+  /** 출제에서 제외할 카테고리 (예: 스트리밍 모드에서 disaster 제외) */
+  excludeCategories?: ReadonlySet<Category>;
+}
+
 /**
  * 한 게임 세션을 위한 출제기. 같은 사건이 반복되지 않도록 내부 상태로 추적한다.
  * Phase 2 UI에서 useRef/useState 어느 쪽으로도 끼울 수 있도록 클래스가 아닌 클로저로 구성.
  */
-export function createQuestionGenerator(difficulty: Difficulty) {
+export function createQuestionGenerator(
+  difficulty: Difficulty,
+  options: GeneratorOptions = {}
+) {
   const used = new Set<number>();
+  const pool = options.excludeCategories
+    ? ALL_EVENTS.filter((e) => !options.excludeCategories!.has(e.category))
+    : ALL_EVENTS;
 
   return {
     next(): QuestionPair | null {
-      const q = generateQuestion(difficulty, { excludeIds: used });
+      const q = generateQuestion(difficulty, { excludeIds: used, pool });
       if (!q) return null;
       // 매 라운드마다 base는 교체되도록 두 사건 모두 used에 등록
       used.add(q.eventA.id);
@@ -136,6 +148,10 @@ export function createQuestionGenerator(difficulty: Difficulty) {
     /** 디버깅용: 지금까지 사용된 사건 id */
     getUsedIds(): ReadonlySet<number> {
       return used;
+    },
+    /** 디버깅용: 현재 풀 크기 */
+    getPoolSize(): number {
+      return pool.length;
     },
   };
 }

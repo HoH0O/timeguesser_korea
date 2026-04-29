@@ -40,9 +40,34 @@ const DIFFICULTY_META: {
   },
 ];
 
-const MODE_META: { key: GameMode; title: string; tagline: string }[] = [
-  { key: "classic", title: "일반 모드", tagline: "시간 제한 없음" },
-  { key: "survival", title: "서바이벌 모드", tagline: "3초 안에 정답!" },
+const MODE_META: {
+  key: GameMode;
+  title: string;
+  shortTitle: string;
+  tagline: string;
+  emoji: string;
+}[] = [
+  {
+    key: "classic",
+    title: "일반 모드",
+    shortTitle: "일반",
+    tagline: "시간 제한 없음",
+    emoji: "",
+  },
+  {
+    key: "survival",
+    title: "서바이벌 모드",
+    shortTitle: "서바이벌",
+    tagline: "3초 안에 정답!",
+    emoji: "⏱",
+  },
+  {
+    key: "streaming",
+    title: "스트리밍 모드",
+    shortTitle: "스트리밍",
+    tagline: "방송 친화 (재난·사고 제외)",
+    emoji: "📺",
+  },
 ];
 
 export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
@@ -82,32 +107,32 @@ export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
               aria-selected={active}
               onClick={() => setMode(m.key)}
               className={[
-                "relative rounded-full px-5 py-2 text-sm md:text-base font-semibold transition-colors",
+                "relative rounded-full px-3 md:px-5 py-2 text-xs md:text-base font-semibold transition-colors whitespace-nowrap",
                 active
                   ? "bg-white text-ink-950 shadow-lg"
                   : "text-white/60 hover:text-white",
               ].join(" ")}
             >
-              {m.key === "survival" && (
-                <span className="mr-1.5" aria-hidden>
-                  ⏱
+              {m.emoji && (
+                <span className="mr-1 md:mr-1.5" aria-hidden>
+                  {m.emoji}
                 </span>
               )}
-              {m.title}
-              <span className="ml-2 hidden text-xs font-normal opacity-60 md:inline">
-                · {m.tagline}
-              </span>
+              <span className="md:hidden">{m.shortTitle}</span>
+              <span className="hidden md:inline">{m.title}</span>
             </button>
           );
         })}
       </div>
 
       <p
-        className="mt-3 animate-fade-in-up text-xs text-white/40"
+        className="mt-3 max-w-md animate-fade-in-up text-balance text-xs text-white/40"
         style={{ animationDelay: "150ms" }}
       >
         {mode === "survival"
           ? "각 문제마다 3초의 제한 시간이 주어져요. 시간 초과 시 즉시 게임 오버!"
+          : mode === "streaming"
+          ? "방송에서 다루기 무거운 재난·사고 카테고리를 제외하고 출제됩니다."
           : "원하는 만큼 천천히 생각해서 답할 수 있어요."}
       </p>
 
@@ -136,7 +161,13 @@ export function IntroScreen({ onStart, bestScores }: IntroScreenProps) {
                 <span className="text-white/40">
                   최고 연승{" "}
                   <span className="text-white/30">
-                    ({mode === "survival" ? "서바이벌" : "일반"})
+                    (
+                    {mode === "survival"
+                      ? "서바이벌"
+                      : mode === "streaming"
+                      ? "스트리밍"
+                      : "일반"}
+                    )
                   </span>
                 </span>
                 <span className="font-mono text-lg font-bold text-white">

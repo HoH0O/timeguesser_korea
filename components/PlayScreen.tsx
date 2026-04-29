@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createQuestionGenerator, isCorrectAnswer } from "@/lib/gameLogic";
 import {
   SURVIVAL_TIME_MS,
+  type Category,
   type Difficulty,
   type GameMode,
   type QuestionPair,
@@ -22,14 +23,24 @@ type Phase = "asking" | "revealing";
 /** 정답일 때 자동으로 다음 문제로 넘어가는 시간 */
 const REVEAL_CORRECT_MS = 1600;
 
+/** 스트리밍 모드에서 제외할 카테고리 (방송 친화) */
+const STREAMING_EXCLUDED: ReadonlySet<Category> = new Set<Category>(["disaster"]);
+
 export function PlayScreen({
   mode,
   difficulty,
   onGameOver,
   onQuit,
 }: PlayScreenProps) {
-  const generator = useMemo(() => createQuestionGenerator(difficulty), [difficulty]);
+  const generator = useMemo(
+    () =>
+      createQuestionGenerator(difficulty, {
+        excludeCategories: mode === "streaming" ? STREAMING_EXCLUDED : undefined,
+      }),
+    [difficulty, mode]
+  );
   const isSurvival = mode === "survival";
+  const isStreaming = mode === "streaming";
 
   const [question, setQuestion] = useState<QuestionPair | null>(() => generator.next());
   const [streak, setStreak] = useState(0);
@@ -110,10 +121,16 @@ export function PlayScreen({
               "hidden md:inline rounded-full px-3 py-1 text-xs uppercase tracking-widest ring-1",
               isSurvival
                 ? "bg-rose-500/15 text-rose-300 ring-rose-400/30"
+                : isStreaming
+                ? "bg-sky-500/15 text-sky-300 ring-sky-400/30"
                 : "bg-white/5 text-white/50 ring-white/10",
             ].join(" ")}
           >
-            {isSurvival ? `⏱ Survival · ${difficulty}` : difficulty}
+            {isSurvival
+              ? `⏱ Survival · ${difficulty}`
+              : isStreaming
+              ? `📺 Streaming · ${difficulty}`
+              : difficulty}
           </span>
           <div className="flex items-baseline gap-2 rounded-full bg-white/5 px-4 py-1.5 ring-1 ring-white/10">
             <span className="text-xs text-white/50">연승</span>
